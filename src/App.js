@@ -8,12 +8,13 @@ import OrderItem from './components/OrderItem';
 import OrderList from './components/OrderList';
 import RegistrationForm from './components/RegistrationForm';
 import axios from 'axios';
-import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
+import {BrowserRouter, Routes, Route, Navigate, useNavigate} from 'react-router-dom';
 import AppRouter from './components/AppRouter';
 import Login from './pages/Login';
 
 const App = () => {
     const { store } = useContext(Context);
+    const navigate = useNavigate();
     // const [users, setUsers] = useState([])
     // const [orders, setOrders] = useState([]);
     const [orders1, , setOrders1] = useState([
@@ -34,20 +35,30 @@ const App = () => {
         return <div>Загрузка...</div>
     }
 
-    if (!store.isAuth) {
-        return (
-            <div>
-                <Login />
-                {/* <OrderList orders={orders1} title="TEST"/>
-                <button onClick={getOrders}>GET ORDERS</button> */}
-                {/* <button onClick={getOrders}>Получить список заказов</button> */}
-            </div>
-        );
-    }
+    // if (!store.isAuth) {
+    //     return (
+    //         <div>
+    //             {navigate('/login')}
+    //             {/* <Login /> */}
+    //             {/* <OrderList orders={orders1} title="TEST"/>
+    //             <button onClick={getOrders}>GET ORDERS</button> */}
+    //             {/* <button onClick={getOrders}>Получить список заказов</button> */}
+    //         </div>
+    //     );
+    // }
 
     return (
+            <div>
+                <AppRouter/>
+                {/* {store.isAuth
+                    ?
+                    navigate('/login')
+                    :
+                    ""
+                } */}
+            </div>
 
-            <AppRouter/>
+            
             // {/* isAuth? */}
             // {/* <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} /> */} 
 

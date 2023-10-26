@@ -139,7 +139,10 @@ export default function OrderById() {
         const deliveryWay = order.attributes?.find(attribute => attribute.name === 'Способ доставки NEW')?.value?.name;
         const comment = order.attributes?.find(attribute => attribute.name === 'Комментарий к заказу')?.value?.name;
         const positions = order.positions?.rows;
-        const mappedPosition = positions.filter(position => position.assortment?.meta.type !== "service");
+        const mappedPosition1 = positions.filter(position => position.assortment?.meta.type !== "service");
+        const mappedPosition = positions.filter(position => position.assortment?.meta.href !== "https://api.moysklad.ru/api/remap/1.2/entity/product/9a8d2bbf-8a73-11ec-0a80-0f0d000e5b0e"); // remove Доставка
+
+        // add filter by Доставка
         const productsWithBundles = await Promise.all(
             mappedPosition.map(async (position) => {
                 const quantity = position.quantity;

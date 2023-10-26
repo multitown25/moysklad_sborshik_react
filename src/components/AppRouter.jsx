@@ -10,8 +10,8 @@ import { Context } from '../index';
 
 const AppRouter = () => {
     const { store } = useContext(Context);
-    console.log(store.isLoading);
-    console.log(store.isAuth);
+    // console.log(store.isLoading);
+    // console.log(store.isAuth);
     // useEffect(() => {
     //     if (localStorage.getItem('token')) {
     //         store.checkAuth()

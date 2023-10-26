@@ -67,22 +67,23 @@ export default function Start() {
         try {
             if (orderId === undefined || orderId === null || orderId === "undefined" || orderId === "") {
                 let orderIsSelect = false;
+                let counter = 0;
                 const ordersInWork = await OrderService.getAllOrdersInWork().then(data => data.data);
                 console.log(ordersInWork);
 
-                while (!orderIsSelect) {
+                while (!orderIsSelect && counter !== 3000) {
                     // await sleep(2000);
-                    const randomIndex = Math.floor(Math.random() * (orders.length - 1))
+                    const randomIndex = Math.floor(Math.random() * (orders.length))
                     const newOrderId = orders[randomIndex]?.id;
                     console.log(newOrderId)
-                    orderIsSelect = true;
+                    // orderIsSelect = true;
                     // console.log(ordersInWork)
                     // const ordersInWorkArray = ordersInWork.data[0].order;
                     // const test = ordersInWork.data.filter(item => item.order.includes(item1 => item1 === newOrderId) === newOrderId);
                     // console.log(ordersInWorkArray);
 
                     // console.log(!ordersInWorkArray.find(item => item === newOrderId));
-                    if (!ordersInWork.find(item => item === newOrderId)) {
+                    if (!ordersInWork.find(item => item.orderId === newOrderId)) {
                         console.log("NEW ORDER ID")
                         console.log(newOrderId)
                         const tryToSetOrderInWork = await OrderService.setOrderInWork(newOrderId, store.user.id);
@@ -90,6 +91,12 @@ export default function Start() {
                         setOrderId(newOrderId);
                         orderIsSelect = true;
                     }
+                   counter++; 
+                }
+
+                if (counter === 3000) { // or if ordersInWork.length === orders.length
+                    setOrderId(undefined);
+                    alert("Нет заказов для сборки! Обратитесь к главному!");
                 }
 
                 // store.setOrder(orderId);

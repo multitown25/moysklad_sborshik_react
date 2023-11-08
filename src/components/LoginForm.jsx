@@ -5,6 +5,7 @@ import React, {useContext, useState} from 'react';
 // const {observer} = require('mobx-react-lite');
 import {Context} from "../index";
 import {observer} from "mobx-react-lite";
+import MyButton from '../UI/MyButton/MyButton';
 
 const LoginForm = () => {
     const [email, setEmail] = useState('')
@@ -25,9 +26,9 @@ const LoginForm = () => {
                 type="password"
                 placeholder='Пароль'
             />
-            <button onClick={() => store.login(email, password)}>
+            <MyButton onClick={() => store.login(email, password)}>
                 Логин
-            </button>
+            </MyButton>
             {/* <button onClick={() => store.registration(email, password)}>
                 Регистрация
             </button> */}

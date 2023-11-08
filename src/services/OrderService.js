@@ -33,15 +33,15 @@ export default class OrderService {
         return $api.get(`/ordersinwork`);
     }
 
-    static async getOrderInWorkByUser(userId) {
-        return $api.get(`/ordersinwork/${userId}`)
+    static async getOrderInWorkByUser(userEmail) {
+        return $api.get(`/ordersinwork/${userEmail}`)
     }
 
-    static async setOrderInWork(id, userId) {
-        return $api.post(`/orderinwork/${id}`, {userId});
+    static async setOrderInWork(id, userEmail, orderName) {
+        return $api.post(`/orderinwork/${id}`, {userEmail, orderName});
     }
 
-    static async removeOrderFromWork(id, userId) {
-        return $api.delete(`/orderinwork/${id}`, {userId});
+    static async removeOrderFromWork(id, userEmail) {
+        return $api.delete(`/orderinwork/${id}`, {userEmail});
     }
 }

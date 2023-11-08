@@ -30,6 +30,10 @@ const App = () => {
         // getOrders();
     }, [])
 
+    useEffect(() => {
+        if (!store.isAuth) navigate('/login');
+    }, []) // [store.isAuth]
+
 
     if (store.isLoading) {
         return <div>Загрузка...</div>

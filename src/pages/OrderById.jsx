@@ -89,6 +89,7 @@ export default function OrderById() {
             console.log(barcode.value)
             console.log(needSelectRowIndex);
             if (needSelectRowIndex === -1) {
+                // alert not found
                 return;
             }
 
@@ -295,7 +296,7 @@ export default function OrderById() {
                             try {
                                 const result = await OrderService.changeOrderStatus(params.id, 'Собрано');
                                 console.log(result);
-                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.id);
+                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
                                 console.log(removeOrderFromWork)
                                 alert(`Заказ ${order.name} успешно собран!`)
                                 navigate('/start')
@@ -314,7 +315,7 @@ export default function OrderById() {
                                 const result = await OrderService.changeOrderStatus(params.id, 'Корректировка');
                                 console.log(result);
                                 console.log(store.user.id)
-                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.id);
+                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
                                 console.log(removeOrderFromWork)
                                 alert(`Заказ ${order.name} успешно отправлен на корректировку!`)
                                 navigate('/start')
@@ -365,8 +366,8 @@ export default function OrderById() {
                                     </Button>
                                     {/* <input type='text' autoFocus></input> */}
                                 </div>
-                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Текущий заказ: ${order.name}`}</div>
-                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Способ доставки: ${order.deliveryWay}`}</div>
+                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>Текущий заказ: <b>{order.name}</b></div>
+                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>Способ доставки: <b>{order.deliveryWay}</b></div>
                                 <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Комментарий: ${order.comment}`}</div>
                             </div>
 

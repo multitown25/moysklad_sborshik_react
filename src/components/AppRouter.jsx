@@ -24,8 +24,10 @@ const AppRouter = () => {
         return <div>Загрузка...</div>
     }
 
+    
+
     return (
-            store.isAuth
+            store.user.email === "flx_admin@gmail.com"
                 ?
                 <Routes>
                     {privateRoutes.map(route =>
@@ -35,7 +37,8 @@ const AppRouter = () => {
                             element={<route.element/>}>
                         </Route>
                     )}
-                    <Route path="*" element={<Navigate to='/start' replace />} />
+                    {/* <Route path="*" element={<Navigate to='/start' replace />} /> */}
+                    {console.log("private routes")}
                 </Routes>
                 :   
                 <Routes>
@@ -48,6 +51,7 @@ const AppRouter = () => {
                     )}
                     {/* <Route path="/orders" element={<OrderList />}/> */}
                     <Route path="*" element={<Navigate to='/login' replace />} />
+                    {console.log("public routes")}
                 </Routes>
 
             // {/* navigate error ? */}

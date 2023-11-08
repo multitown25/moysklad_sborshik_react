@@ -1,10 +1,12 @@
 import React, {useState, useEffect} from 'react'
 import OrderList from '../components/OrderList';
 import OrderService from '../services/OrderService';
-
+import MyButton from '../UI/MyButton/MyButton';
+import { useNavigate } from 'react-router-dom';
 
 export default function Orders() {
     const [orders, setOrders] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         getAllOrders();
@@ -24,9 +26,14 @@ export default function Orders() {
         }
     }
 
+    function handleBackToStartButton() {
+        navigate('/start')
+    }
+
     return (
         <div>
             <OrderList orders={orders} title="Список заказов для сборки"/>
+            <MyButton onClick={handleBackToStartButton}>На главную</MyButton>
         </div>
     )
 }

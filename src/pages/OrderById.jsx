@@ -89,7 +89,7 @@ export default function OrderById() {
             console.log(barcode.value)
             console.log(needSelectRowIndex);
             if (needSelectRowIndex === -1) {
-                // alert not found
+                alert("Неверный штрихкод!")
                 return;
             }
 
@@ -298,6 +298,7 @@ export default function OrderById() {
                                 console.log(result);
                                 const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
                                 console.log(removeOrderFromWork)
+                                const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
                                 alert(`Заказ ${order.name} успешно собран!`)
                                 navigate('/start')
                                 // перекинуть на другой заказ

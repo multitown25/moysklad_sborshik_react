@@ -24,16 +24,20 @@ export default function Start() {
         // chooseRandomOrderId();
     }, []);
 
-    useEffect(() => {
-        // getAllOrders();
-        if (store.user.email === "flx_admin@gmail.com") {
-            return;
-        }
-        orders.length !== 0 && chooseRandomOrderId();
-    }, [orders]);
+    // useEffect(() => {
+    //     // getAllOrders();
+    //     if (store.user.email === "flx_admin@gmail.com") {
+    //         return;
+    //     }
+    //     orders.length !== 0 && chooseRandomOrderId();
+    // }, [orders]);
 
-    function handleNewOrder() {
-        navigate(`/orders/${orderId}`)
+    async function handleNewOrder() {
+        const orderForWork = await chooseRandomOrderId();
+        console.log(Object.entries(orderForWork))
+        const url = `/orders/${orderForWork}`
+        console.log(url)
+        navigate(url)
     }
 
     function handleLogout() {
@@ -110,6 +114,7 @@ export default function Start() {
                         const tryToSetOrderInWork = await OrderService.setOrderInWork(newOrderId, store.user.email, newOrderName);
                         // console.log(tryToSetOrderInWork);
                         setOrderId(newOrderId);
+                        return newOrderId;
                         orderIsSelect = true;
                     }
                     counter++;
@@ -126,6 +131,7 @@ export default function Start() {
             } else {
                 // return Promise.resolve(orderId);
                 setOrderId(orderId.orderId);
+                return orderId.orderId;
             }
         } catch (error) {
             console.log(error)

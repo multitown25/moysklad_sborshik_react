@@ -44,4 +44,8 @@ export default class OrderService {
     static async removeOrderFromWork(id, userEmail) {
         return $api.delete(`/orderinwork/${id}`, {userEmail});
     }
+
+    static async addSborshikToOrder(id, userEmail) {
+        return $api.post(`/orders/${id}/changebody`, {userEmail});
+    }
 }

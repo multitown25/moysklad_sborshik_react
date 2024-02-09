@@ -27,7 +27,7 @@ const AppRouter = () => {
     
 
     return (
-            store.user.email === "flx_admin@gmail.com"
+            store.user.email === "admin"
                 ?
                 <Routes>
                     {privateRoutes.map(route =>
@@ -51,7 +51,7 @@ const AppRouter = () => {
                     )}
                     {/* <Route path="/orders" element={<OrderList />}/> */}
                     <Route path="*" element={<Navigate to='/login' replace />} />
-                    {console.log("public routes")}
+                    
                 </Routes>
 
             // {/* navigate error ? */}

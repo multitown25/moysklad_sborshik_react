@@ -4,10 +4,12 @@ import axios from 'axios';
 import {API_URL} from "../http";
 
 export default class Store {
+    sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"];
     user = {};
     isAuth = false;
     isLoading = false;
     orderId = '';
+    isSborshik = true;
 
     constructor() {
         makeAutoObservable(this);
@@ -19,6 +21,10 @@ export default class Store {
 
     setUser(user) {
         this.user = user;
+    }
+
+    setSborshik(bool) {
+        this.isSborshik = bool;
     }
 
     setLoading(bool) {
@@ -36,7 +42,10 @@ export default class Store {
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
+            this.setSborshik(this.sborshiks.includes(response.data.user.email))
+            console.log(this.isSborshik);
             console.log("УСПЕШНО")
+            console.log(this.sborshiks.includes(response.data.user.email))
             // router.push(`/posts/${props.post.id}
         } catch (e) {
             console.log("ОШИБКА")
@@ -51,6 +60,7 @@ export default class Store {
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
+            this.setSborshik(this.sborshiks.includes(response.data.user.email))
             alert("УСПЕШНО!")
         } catch (e) {
             console.log(e.response?.data?.message);

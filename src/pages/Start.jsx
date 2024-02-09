@@ -34,7 +34,15 @@ export default function Start() {
 
     async function handleNewOrder() {
         const orderForWork = await chooseRandomOrderId();
-        console.log(Object.entries(orderForWork))
+        console.log(orderForWork)
+        // console.log(Object.entries(orderForWork))
+        if (orderForWork == 'undefined' || orderForWork == null) {
+            console.log('handle new order')
+            alert('Нет заказов! Обратитесь к главному!')
+            const removeOrderFromWork = await OrderService.removeOrderFromWork("undefined", store.user.email);
+            console.log(removeOrderFromWork);
+            return;
+        }
         const url = `/orders/${orderForWork}`
         console.log(url)
         navigate(url)
@@ -54,8 +62,16 @@ export default function Start() {
 
     async function getAllOrders() {
         try {
-            const response = await OrderService.getAllOrders();
-            console.log(response);
+            let neededStatus;
+            console.log(store.isSborshik);
+            if (store.isSborshik) {
+                neededStatus = 'НА СБОРКЕ';
+            } else {
+                neededStatus = 'НА УПАКОВКЕ'
+            }
+            // console.log(neededStatus);
+            const response = await OrderService.getAllOrders(neededStatus);
+            // console.log(response);
             setOrders(response.data);
 
             // const orderId = localStorage.getItem('orderId');
@@ -82,10 +98,16 @@ export default function Start() {
     }
 
     async function chooseRandomOrderId() {
+        // if (orders?.positions == undefined) {
+        //     console.log('choose random')
+        //     setOrderId(undefined);
+        //     return;
+        // }
         console.log(store.user.email)
         const orderId = await OrderService.getOrderInWorkByUser(store.user.email).then(data => data.data);
         // setOrderId(orderId)
         console.log(orderId)
+        console.log(orders?.positions)
 
 
         try {
@@ -108,7 +130,7 @@ export default function Start() {
                     // console.log(ordersInWorkArray);
 
                     // console.log(!ordersInWorkArray.find(item => item === newOrderId));
-                    if (!ordersInWork.find(item => item.orderId === newOrderId)) {
+                    if (!ordersInWork.find(item => item.orderId === newOrderId) && newOrderId != undefined) {
                         console.log("NEW ORDER ID")
                         console.log(newOrderId)
                         const tryToSetOrderInWork = await OrderService.setOrderInWork(newOrderId, store.user.email, newOrderName);
@@ -120,10 +142,10 @@ export default function Start() {
                     counter++;
                 }
 
-                if (counter === 3000) { // or if ordersInWork.length === orders.length
-                    setOrderId(undefined);
-                    alert("Нет заказов для сборки! Обратитесь к главному!");
-                }
+                // if (counter === 3000) { // or if ordersInWork.length === orders.length
+                //     setOrderId(undefined);
+                //     alert("Нет заказов для сборки! Обратитесь к главному!");
+                // }
 
                 // store.setOrder(orderId);
                 // console.log(newOrderId);
@@ -150,16 +172,16 @@ export default function Start() {
                     <h3>{`Добро пожаловать, ${store.user.email}!`}</h3>
                     {/* <Link to={`/orders/${orderId}`}>Начать собирать</Link> */}
 
-                    {store.user.email !== "flx_admin@gmail.com"
+                    {store.user.email !== "admin"
                         ?
                         <MyButton onClick={handleNewOrder}>Начать собирать</MyButton>
                         :
                         ""
                     }
 
-                    <p>proverka salam bratishka iiiiiuu</p>
+                    {/* <p>TEST</p> */}
 
-                    {store.user.email === "flx_admin@gmail.com"
+                    {store.user.email === "admin"
                         ?
                         <div>
                             <MyButton onClick={handleAllOrders}>

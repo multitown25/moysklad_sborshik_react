@@ -1,8 +1,8 @@
 import $api from "../http";
 
 export default class OrderService {
-    static async getAllOrders() {
-        return $api.get('/orders')
+    static async getAllOrders(status) {
+        return $api.post(`/orders`, {status})
     }
 
     static async getOrderById(id) {

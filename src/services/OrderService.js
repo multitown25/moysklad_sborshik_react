@@ -13,21 +13,21 @@ export default class OrderService {
         return $api.post(`/orders/${id}`, {statusName})
     }
 
-    static async getPositionsByOrderId(id) {
-        return $api.get(`/orders/${id}/positions`)
-    }
+    // static async getPositionsByOrderId(id) {
+    //     return $api.get(`/orders/${id}/positions`)
+    // }
 
     static async fetchImages(imageURL) {
         return $api.post(`/images`, {imgURL: imageURL})
     }
 
-    static async getImage(imageURL) {
-        return $api.post('/img', {imgURL: imageURL})
-    }
+    // static async getImage(imageURL) {
+    //     return $api.post('/img', {imgURL: imageURL})
+    // }
 
-    static async getBundleComponents(id) {
-        return $api.get(`/bundle/${id}/components`)
-    }
+    // static async getBundleComponents(id) {
+    //     return $api.get(`/bundle/${id}/components`)
+    // }
 
     static async getAllOrdersInWork() {
         return $api.get(`/ordersinwork`);

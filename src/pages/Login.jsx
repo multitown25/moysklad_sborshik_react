@@ -8,7 +8,6 @@ export default function Login() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // console.log("THIS USEEFFECT")
         if (store.isAuth) navigate('/start')
     }, [store.user])
 

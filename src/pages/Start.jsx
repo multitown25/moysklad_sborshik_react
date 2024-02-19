@@ -10,27 +10,12 @@ export default function Start() {
     const [orderId, setOrderId] = useState('');
     const navigate = useNavigate();
 
-    // console.log(localStorage.getItem('orderId'));
-
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //       console.log('Timeout called!');
-    //     }, 3000);
-    //     return () => clearTimeout(timer);
-    //   }, []);
 
     useEffect(() => {
         getAllOrders();
         // chooseRandomOrderId();
     }, []);
 
-    // useEffect(() => {
-    //     // getAllOrders();
-    //     if (store.user.email === "flx_admin@gmail.com") {
-    //         return;
-    //     }
-    //     orders.length !== 0 && chooseRandomOrderId();
-    // }, [orders]);
 
     async function handleNewOrder() {
         const orderForWork = await chooseRandomOrderId();
@@ -74,20 +59,6 @@ export default function Start() {
             // console.log(response);
             setOrders(response.data);
 
-            // const orderId = localStorage.getItem('orderId');
-            // if (orderId == undefined || orderId == null || orderId == "") {
-            //     console.log("FSDFDS")
-            //     const randomIndex = Math.floor(Math.random() * (orders.length))
-            //     const newOrderId = orders[randomIndex]?.id;
-            //     localStorage.setItem('orderId', newOrderId)
-            //     // store.setOrder(orderId);
-            //     console.log(newOrderId);
-
-            // } else {
-
-            // }
-            // const response = await axios.get('https://online.moysklad.ru/api/remap/1.2/entity/customerorder?filter=state.name=НА СБОРКЕ', config);
-            // console.log(response);
         } catch (e) {
             console.log(e);
         }
@@ -98,14 +69,8 @@ export default function Start() {
     }
 
     async function chooseRandomOrderId() {
-        // if (orders?.positions == undefined) {
-        //     console.log('choose random')
-        //     setOrderId(undefined);
-        //     return;
-        // }
         console.log(store.user.email)
         const orderId = await OrderService.getOrderInWorkByUser(store.user.email).then(data => data.data);
-        // setOrderId(orderId)
         console.log(orderId)
         console.log(orders?.positions)
 
@@ -123,11 +88,6 @@ export default function Start() {
                     const newOrderId = orders[randomIndex]?.id;
                     const newOrderName = orders[randomIndex]?.name;
                     console.log(newOrderId)
-                    // orderIsSelect = true;
-                    // console.log(ordersInWork)
-                    // const ordersInWorkArray = ordersInWork.data[0].order;
-                    // const test = ordersInWork.data.filter(item => item.order.includes(item1 => item1 === newOrderId) === newOrderId);
-                    // console.log(ordersInWorkArray);
 
                     // console.log(!ordersInWorkArray.find(item => item === newOrderId));
                     if (!ordersInWork.find(item => item.orderId === newOrderId) && newOrderId != undefined) {
@@ -142,14 +102,6 @@ export default function Start() {
                     counter++;
                 }
 
-                // if (counter === 3000) { // or if ordersInWork.length === orders.length
-                //     setOrderId(undefined);
-                //     alert("Нет заказов для сборки! Обратитесь к главному!");
-                // }
-
-                // store.setOrder(orderId);
-                // console.log(newOrderId);
-                // return Promise.resolve(orderId);
             } else {
                 // return Promise.resolve(orderId);
                 setOrderId(orderId.orderId);
@@ -158,10 +110,6 @@ export default function Start() {
         } catch (error) {
             console.log(error)
         }
-
-
-
-
     }
 
     return (
@@ -179,8 +127,6 @@ export default function Start() {
                         ""
                     }
 
-                    {/* <p>TEST</p> */}
-
                     {store.user.email === "admin"
                         ?
                         <div>
@@ -195,7 +141,6 @@ export default function Start() {
                         ""
                     }
 
-
                     <MyButton onClick={async () => {
                         await store.logout();
                         handleLogout();
@@ -203,12 +148,10 @@ export default function Start() {
                         Выйти
                     </MyButton>
 
-
                 </div>
                 :
                 <div></div>
             }
         </div>
     )
-    // const randomIndex = Math.floor(Math.random() * (numbers.length - 1))
 }

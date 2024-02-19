@@ -1,8 +1,5 @@
 import React, {useContext, useState} from 'react';
-// const React = require('react');
-// const {useContext, useState} = require('react');
-// const {Context} = require('../index');
-// const {observer} = require('mobx-react-lite');
+
 import {Context} from "../index";
 import {observer} from "mobx-react-lite";
 import MyButton from '../UI/MyButton/MyButton';
@@ -29,9 +26,7 @@ const LoginForm = () => {
             <MyButton onClick={() => store.login(email, password)}>
                 Логин
             </MyButton>
-            {/* <button onClick={() => store.registration(email, password)}>
-                Регистрация
-            </button> */}
+
         </div>
     );
 };

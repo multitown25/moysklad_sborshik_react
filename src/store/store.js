@@ -45,7 +45,6 @@ export default class Store {
             console.log(this.isSborshik);
             console.log("УСПЕШНО")
             console.log(this.sborshiks.includes(response.data.user.email))
-            // router.push(`/posts/${props.post.id}
         } catch (e) {
             console.log("ОШИБКА")
             console.log(e.response?.data?.message);

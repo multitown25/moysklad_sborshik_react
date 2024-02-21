@@ -7,6 +7,7 @@ import MyButton from '../UI/MyButton/MyButton';
 export default function Start() {
     const { store } = useContext(Context);
     const [orders, setOrders] = useState([]);
+    const [userOrders, setUserOrders] = useState([]);
     const [orderId, setOrderId] = useState('');
     const navigate = useNavigate();
 
@@ -20,6 +21,8 @@ export default function Start() {
     async function handleNewOrder() {
         const orderForWork = await chooseRandomOrderId();
         console.log(orderForWork)
+        console.log('userOrders');
+        console.log(userOrders)
         // console.log(Object.entries(orderForWork))
         if (orderForWork == 'undefined' || orderForWork == null) {
             console.log('handle new order')
@@ -58,8 +61,6 @@ export default function Start() {
             const response = await OrderService.getAllOrders(neededStatus);
             // console.log(response);
             setOrders(response.data);
-            console.log(orders);
-            console.log(response.data);
         } catch (e) {
             console.log(e);
         }
@@ -71,6 +72,10 @@ export default function Start() {
 
     async function chooseRandomOrderId() {
         console.log(store.user.email)
+
+        // get current user order from redis cache
+        // await OrderService.getCurrentOrder(store.user.email);
+        // await OrderService.getAllOrderInWork()
         const orderId = await OrderService.getOrderInWorkByUser(store.user.email).then(data => data.data);
         console.log(orderId)
         console.log(orders?.positions)
@@ -90,15 +95,22 @@ export default function Start() {
                     const newOrderName = orders[randomIndex]?.name;
                     console.log(newOrderId)
 
-                    // console.log(!ordersInWorkArray.find(item => item === newOrderId));
+
                     if (!ordersInWork.find(item => item.orderId === newOrderId) && newOrderId != undefined) {
                         console.log("NEW ORDER ID")
                         console.log(newOrderId)
+
+                        // await OrderService.setCurrentOrder();
                         const tryToSetOrderInWork = await OrderService.setOrderInWork(newOrderId, store.user.email, newOrderName);
-                        // console.log(tryToSetOrderInWork);
+                        setUserOrders(userOrders.push({
+                            id: newOrderId,
+                            isCurrent: false // false by default
+                        }));
+
+                        // remove this
                         setOrderId(newOrderId);
                         return newOrderId;
-                        orderIsSelect = true;
+                        orderIsSelect = true; // flag for stop/keep doing while cycle
                     }
                     counter++;
                 }

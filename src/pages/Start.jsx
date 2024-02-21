@@ -58,7 +58,8 @@ export default function Start() {
             const response = await OrderService.getAllOrders(neededStatus);
             // console.log(response);
             setOrders(response.data);
-
+            console.log(orders);
+            console.log(response.data);
         } catch (e) {
             console.log(e);
         }

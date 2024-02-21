@@ -13,10 +13,6 @@ export default class OrderService {
         return $api.post(`/orders/${id}`, {statusName})
     }
 
-    static async fetchImages(imageURL) {
-        return $api.post(`/images`, {imgURL: imageURL})
-    }
-
     static async getAllOrdersInWork() {
         return $api.get(`/ordersinwork`);
     }

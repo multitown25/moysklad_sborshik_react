@@ -7,7 +7,7 @@ import OrderById from "../pages/OrderById";
 import OrdersInWork from "../pages/OrdersInWork";
 
 export const privateRoutes = [
-    {path: '/registration', element: Registration}, // replace all elements to Pages
+    // {path: '/registration', element: Registration}, // replace all elements to Pages
     {path: '/orders', element: Orders},
     {path: '/login', element: Login},
     {path: '/orders/:id', element: OrderById},
@@ -18,5 +18,6 @@ export const privateRoutes = [
 export const publicRoutes = [
     {path: '/login', element: Login},
     {path: '/orders/:id', element: OrderById},
-    {path: '/start', element: Start}
+    {path: '/start', element: Start},
+    {path: '/registration', element: Registration}
 ]

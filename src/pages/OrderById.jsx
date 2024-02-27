@@ -147,18 +147,18 @@ export default function OrderById() {
                     renderTopToolbarCustomActions={({ table }) => {
                         const handleCollectOrder = async () => {
                             try {
-                                let statusToChange;
-                                if (!store.isSborshik) {
-                                    statusToChange = 'Собрано'
-                                } else {
-                                    statusToChange = 'НА УПАКОВКЕ'
-                                }
-                                const result = await OrderService.changeOrderStatus(params.id, statusToChange);
+                                // let statusToChange;
+                                // if (!store.isSborshik) {
+                                //     statusToChange = 'Собрано'
+                                // } else {
+                                //     statusToChange = 'НА УПАКОВКЕ'
+                                // }
+                                const result = await OrderService.changeOrderStatus(params.id, 'Собрано');
                                 console.log(result);
                                 const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
                                 console.log(removeOrderFromWork)
                                 const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
-                                alert(`Заказ ${order.name} переведен на статус ${statusToChange}!`)
+                                alert(`Заказ ${order.name} переведен на статус ${'Собрано'}!`)
                                 navigate('/start')
                                 // перекинуть на другой заказ
                                 // table.getSelectedRowModel().flatRows.map((row) => {
@@ -223,6 +223,14 @@ export default function OrderById() {
                                         variant="contained"
                                     >
                                         Нет товара?
+                                    </Button>
+                                    <Button
+                                        color="warning"
+                                        // disabled={true}
+                                        // onClick={handleContact}
+                                        variant="contained"
+                                    >
+                                        Мои заказы
                                     </Button>
                                     {/* <input type='text' autoFocus></input> */}
                                 </div>

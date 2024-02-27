@@ -17,14 +17,14 @@ export default function Orders() {
     
     async function getAllOrders() {
         try {
-            let neededStatus;
-            if (store.user.isSborshik || store.user.email == "admin") {
-                neededStatus = 'НА СБОРКЕ';
-            } else {
-                neededStatus = 'НА УПАКОВКЕ'
-            }
-            console.log(neededStatus);
-            const response = await OrderService.getAllOrders(neededStatus);
+            // let neededStatus;
+            // if (store.user.isSborshik || store.user.email == "admin") {
+            //     neededStatus = 'НА СБОРКЕ';
+            // } else {
+            //     neededStatus = 'НА УПАКОВКЕ'
+            // }
+            console.log('НА СБОРКЕ');
+            const response = await OrderService.getAllOrders('НА СБОРКЕ');
             console.log(response);
             // const onlyKazanOrders = response.data.filter(order => order.store.meta.href === "https://api.moysklad.ru/api/remap/1.2/entity/store/be01fcbe-5120-11ec-0a80-0562002b7e32");
             setOrders(response.data);

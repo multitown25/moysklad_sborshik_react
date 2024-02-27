@@ -50,15 +50,15 @@ export default function Start() {
 
     async function getAllOrders() {
         try {
-            let neededStatus;
-            console.log(store.isSborshik);
-            if (store.isSborshik) {
-                neededStatus = 'НА СБОРКЕ';
-            } else {
-                neededStatus = 'НА УПАКОВКЕ'
-            }
+            // let neededStatus;
+            // console.log(store.isSborshik);
+            // if (store.isSborshik) {
+            //     neededStatus = 'НА СБОРКЕ';
+            // } else {
+            //     neededStatus = 'НА УПАКОВКЕ'
+            // }
             // console.log(neededStatus);
-            const response = await OrderService.getAllOrders(neededStatus);
+            const response = await OrderService.getAllOrders();
             // console.log(response);
             setOrders(response.data);
         } catch (e) {

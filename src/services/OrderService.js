@@ -13,8 +13,8 @@ export default class OrderService {
         return $api.post(`/orders/${id}`, {statusName})
     }
 
-    static async getAllOrdersInWork() {
-        return $api.get(`/ordersinwork`);
+    static async getAllOrdersInWork(type) {
+        return $api.get(`/ordersinwork${type}`);
     }
 
     static async getOrderInWorkByUser(userEmail) {

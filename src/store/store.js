@@ -3,12 +3,11 @@ import AuthService from "../services/AuthService";
 import axios from 'axios';
 
 export default class Store {
-    sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"];
+    // sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"];
     user = {};
     isAuth = false;
     isLoading = false;
     orderId = '';
-    isSborshik = true;
 
     constructor() {
         makeAutoObservable(this);
@@ -22,9 +21,9 @@ export default class Store {
         this.user = user;
     }
 
-    setSborshik(bool) {
-        this.isSborshik = bool;
-    }
+    // setSborshik(bool) {
+    //     this.isSborshik = bool;
+    // }
 
     setLoading(bool) {
         this.isLoading = bool;
@@ -41,24 +40,25 @@ export default class Store {
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
-            this.setSborshik(this.sborshiks.includes(response.data.user.email))
-            console.log(this.isSborshik);
+            // this.setSborshik(this.sborshiks.includes(response.data.user.email))
+            // console.log(this.isSborshik);
             console.log("УСПЕШНО")
-            console.log(this.sborshiks.includes(response.data.user.email))
+            // console.log(this.sborshiks.includes(response.data.user.email))
         } catch (e) {
             console.log("ОШИБКА")
             console.log(e.response?.data?.message);
+            alert(e.response?.data?.message);
         }
     }
 
-    async registration(email, password) {
+    async registration(email, password, position) {
         try {
-            const response = await AuthService.registration(email, password);
+            const response = await AuthService.registration(email, password, position);
             console.log(response)
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
-            this.setSborshik(this.sborshiks.includes(response.data.user.email))
+            // this.setSborshik(this.sborshiks.includes(response.data.user.email))
             alert("УСПЕШНО!")
         } catch (e) {
             console.log(e.response?.data?.message);
@@ -86,7 +86,7 @@ export default class Store {
             this.setAuth(true);
             this.setUser(response.data.user);
         } catch (e) {
-            console.log(e.response?.data?.message);
+            console.log({message: e.response?.data?.message, code: e.response?.status});
         } finally {
             this.setLoading(false);
         }

@@ -1,11 +1,14 @@
-import React, { useEffect, useState, useMemo, useReducer, useContext } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import React, {useEffect, useLayoutEffect, useState, useMemo, useReducer, useContext} from 'react'
+import {useParams, useNavigate} from 'react-router-dom'
 import OrderService from '../services/OrderService';
-import { MaterialReactTable } from 'material-react-table';
-import { Box, Button, ListItemIcon, MenuItem, Typography } from '@mui/material';
-import { Context } from '../index';
+import {MaterialReactTable} from 'material-react-table';
+import {Box, Button, ListItemIcon, MenuItem, Typography} from '@mui/material';
+import {Context} from '../index';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
+import OrderList from "../components/OrderList";
+import {toJS} from "mobx";
+import MyButton from "../UI/MyButton/MyButton";
 
 /**
  * выводить:
@@ -14,18 +17,25 @@ import 'reactjs-popup/dist/index.css';
  */
 
 export default function OrderById() {
-    const { store } = useContext(Context);
+    const {store} = useContext(Context);
     const pagination = {
         pageSize: 100
     }
+    const STATES = new Map([
+        ['Сборщик', 'НА УПАКОВКЕ'],
+        ['Упаковщик', 'Собрано'],
+        ['Разливщик масел', 'РАЗЛИВ МАСЕЛ']
+    ])
     const [order, setOrder] = useState([]);
     const [rowSelection, setRowSelection] = useState({});
-    const sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"]
     let [barcodeParts, setBarcodeParts] = useState('');
     const [barcode, setBarcode] = useState({});
     const [, forceUpdate] = useReducer(x => x + 1, 0);
     const params = useParams();
     const [showPopup, setShowPopup] = useState(false);
+    const [isWaitingButtonClicked, setIsWaitingButtonClicked] = useState(false);
+    const [isCorrectButtonClicked, setIsCorrectButtonClicked] = useState(false);
+    const [orderCorrectReason, setOrderCorrectReason] = useState("");
     const navigate = useNavigate();
     const columns = useMemo(
         () => [
@@ -33,10 +43,10 @@ export default function OrderById() {
                 accessorKey: 'image',
                 header: 'Изображение',
                 size: 200,
-                Cell: ({ cell }) => (
+                Cell: ({cell}) => (
                     <img
                         alt="No image"
-                        src={cell.getValue()} />
+                        src={cell.getValue()}/>
                 )
             },
             {
@@ -55,16 +65,70 @@ export default function OrderById() {
 
     useEffect(() => {
         getOrderById(params.id);
-    }, [])
+        uploadSelectedRowsFromServer();
+
+    }, [params.id])
+
+    async function uploadSelectedRowsFromServer() {
+        // let isUploaded = false;
+
+        try {
+            const response = await store.checkOrdersInWork();
+            // isUploaded = true;
+
+            const orderInStore = toJS(store.ordersInWork);
+            const rowsToUpdate = orderInStore.find(item => item.id === params.id).selectedPositions;
+
+            // for (let i = 0; i < order.positions.length; i++) {
+            //     if (order.positions[i].toLowerCase().contains('масла')) {
+            //         rowsToUpdate[i] = true;
+            //     }
+            // }
+
+            console.log('order in store', rowsToUpdate)
+
+            const selectedRow = Object.assign(rowSelection, rowsToUpdate);
+            setRowSelection((selectedRow) => (selectedRow));
+
+        } catch (e) {
+            console.log(e);
+        }
+
+
+    }
+
 
     useEffect(() => {
-        console.log(rowSelection)
+        console.log(rowSelection);
+        const orderInStoree = updateSelectedPositions();
+
     }, [rowSelection])
+
+    async function updateSelectedPositions() {
+        const orderInStore = toJS(store.ordersInWork).find(item => item.id === params.id);
+        const updatedIndicesArr = Object.keys(rowSelection).map(item => {
+            const number = parseInt(item);
+            return {
+                [number]: true
+            }
+        });
+        // console.log('orderId', order);
+        const updatedIndices = Object.assign({}, ...updatedIndicesArr);
+        console.log('updated indices', updatedIndices);
+
+        let serverResToUpdateSelectedPositions;
+        if (updatedIndicesArr.length > 0) {
+            console.log('update indices length', updatedIndicesArr.length);
+            await OrderService.updateSelectedPositions(params.id, {updatedIndices});
+        }
+
+        return serverResToUpdateSelectedPositions;
+    }
 
     useEffect(() => {
         function handleKeyDown(e) {
             if (e.key === 'Enter') {
-                setBarcode({ value: parseScannedInput(barcodeParts) });
+                setBarcode({value: parseScannedInput(barcodeParts)});
                 setBarcodeParts('');
                 return;
             }
@@ -95,8 +159,9 @@ export default function OrderById() {
                 return;
             }
 
-            const selectedRow = Object.assign(rowSelection, { [needSelectRowIndex]: true })
+            const selectedRow = Object.assign(rowSelection, {[needSelectRowIndex]: true})
             setRowSelection((selectedRow) => (selectedRow));
+            console.log('selected row', selectedRow);
             console.log(barcode);
             console.log(rowSelection);
         }
@@ -111,11 +176,11 @@ export default function OrderById() {
                 // const mappedPosition = positions.filter(position => position.assortment?.meta.href !== "https://api.moysklad.ru/api/remap/1.2/entity/product/9a8d2bbf-8a73-11ec-0a80-0f0d000e5b0e"); // remove Доставка
                 const response = await OrderService.getOrderById(id);
                 console.log(response);
-                
+
                 // const reformattedData = await reformatDataOrder(response.data);
                 setOrder(response.data);
                 orderIsTaken = true;
-                
+
 
             } catch (e) {
                 console.log(e);
@@ -123,16 +188,35 @@ export default function OrderById() {
         }
 
     }
-    
+
     function parseScannedInput(input) {
         const matches = input.match(/Alt(\d+)/g);
         if (!matches) return input;
-  
+
         return matches.map((code) => {
-        const num = code.replace("Alt", "");
+            const num = code.replace("Alt", "");
             return String.fromCharCode(parseInt(num));
         }).join('');
     }
+
+    const handleSendToCorrect = async () => {
+        try {
+            const addToDescription = `${order.description}\n${orderCorrectReason}`
+
+            const result = await OrderService.changeOrderStatus(params.id, 'Корректировка', addToDescription);
+            console.log(result);
+            console.log(store.user.id);
+            // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
+            // console.log(removeOrderFromWork)
+            const serverRes = await OrderService.moveOrderToWaitingList(params.id);
+            alert(`Заказ ${order.name} успешно отправлен на корректировку!`)
+            navigate('/start')
+
+        } catch (error) {
+            alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
+        }
+
+    };
 
 
     return (
@@ -140,111 +224,125 @@ export default function OrderById() {
             {order?.positions
                 ?
                 <MaterialReactTable columns={columns} data={order.positions}
-                    enableRowSelection
-                    onRowSelectionChange={setRowSelection}
-                    initialState={{pagination}}
-                    state={{ rowSelection }}
-                    renderTopToolbarCustomActions={({ table }) => {
-                        const handleCollectOrder = async () => {
-                            try {
-                                // let statusToChange;
-                                // if (!store.isSborshik) {
-                                //     statusToChange = 'Собрано'
-                                // } else {
-                                //     statusToChange = 'НА УПАКОВКЕ'
-                                // }
-                                const result = await OrderService.changeOrderStatus(params.id, 'Собрано');
-                                console.log(result);
-                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
-                                console.log(removeOrderFromWork)
-                                const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
-                                alert(`Заказ ${order.name} переведен на статус ${'Собрано'}!`)
-                                navigate('/start')
-                                // перекинуть на другой заказ
-                                // table.getSelectedRowModel().flatRows.map((row) => {
-                                //     alert('deactivating ' + row.getValue('name'));
-                                // }); 
-                            } catch (error) {
-                                alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
-                            }
+                                    enableRowSelection
+                                    onRowSelectionChange={setRowSelection}
+                                    initialState={{pagination}}
+                                    state={{rowSelection}}
+                                    renderTopToolbarCustomActions={({table}) => {
+                                        const handleCollectOrder = async () => {
+                                            try {
+                                                const result = await OrderService.changeOrderStatus(params.id, STATES.get(store.user.position));
+                                                console.log(result);
+                                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.position);
+                                                console.log(removeOrderFromWork)
+                                                const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
+                                                alert(`Заказ ${order.name} переведен на статус ${STATES.get(store.user.position)}!`)
+                                                navigate('/start')
+                                                // перекинуть на другой заказ
+                                                // table.getSelectedRowModel().flatRows.map((row) => {
+                                                //     alert('deactivating ' + row.getValue('name'));
+                                                // });
+                                            } catch (error) {
+                                                alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
+                                            }
 
-                        };
+                                        };
 
-                        const handleSendToCorrect = async () => {
-                            try {
-                                const result = await OrderService.changeOrderStatus(params.id, 'Корректировка');
-                                console.log(result);
-                                console.log(store.user.id)
-                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
-                                console.log(removeOrderFromWork)
-                                alert(`Заказ ${order.name} успешно отправлен на корректировку!`)
-                                navigate('/start')
-                                // table.getSelectedRowModel().flatRows.map((row) => {
-                                //     alert('activating ' + row.getValue('name'));
-                                // });
-                            } catch (error) {
-                                alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
-                            }
 
-                        };
+                                        const handleToWaitingList = async () => {
+                                            // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id);
+                                            // console.log(removeOrderFromWork)
+                                            // console.log(order)
+                                            const serverRes = await OrderService.moveOrderToWaitingList(params.id);
+                                            alert(`Заказ ${order.name} успешно отправлен в лист ожидания!`)
+                                            navigate('/start');
+                                            // localStorage.removeItem('orderId');
+                                            // table.getSelectedRowModel().flatRows.map((row) => {
+                                            //     alert('contact ' + row.getValue('name'));
+                                            // });
+                                        };
 
-                        const handleContact = async () => {
-                            const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id);
-                            console.log(removeOrderFromWork)
-                            localStorage.removeItem('orderId');
-                            // table.getSelectedRowModel().flatRows.map((row) => {
-                            //     alert('contact ' + row.getValue('name'));
-                            // });
-                        };
+                                        return (
+                                            <div>
+                                                <div style={{
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    marginTop: 9,
+                                                    marginLeft: 35
+                                                }}>Комментарий: <b>{order.description}</b></div>
+                                                <div style={{display: 'flex', gap: '0.5rem'}}>
+                                                    <Button
+                                                        color="success"
+                                                        disabled={!table.getIsAllRowsSelected()}
+                                                        onClick={handleCollectOrder}
+                                                        variant="contained"
+                                                    >
+                                                        СОБРАТЬ
+                                                    </Button>
+                                                    <Button
+                                                        color="error"
+                                                        // disabled={!table.getIsSomeRowsSelected()}
+                                                        onClick={() => setIsCorrectButtonClicked(true)}
+                                                        variant="contained"
+                                                    >
+                                                        КОРРЕКТИРОВКА
+                                                    </Button>
+                                                    <Button
+                                                        color="primary"
+                                                        // disabled={true}
+                                                        onClick={handleToWaitingList}
+                                                        variant="contained"
+                                                    >
+                                                        В ожидание
+                                                    </Button>
+                                                    {/*<Button*/}
+                                                    {/*    color="warning"*/}
+                                                    {/*    // disabled={true}*/}
+                                                    {/*    onClick={() => setIsWaitingButtonClicked(true)}*/}
+                                                    {/*    variant="contained"*/}
+                                                    {/*>*/}
+                                                    {/*    Мои заказы*/}
+                                                    {/*</Button>*/}
+                                                    {/* <input type='text' autoFocus></input> */}
+                                                </div>
+                                                <div style={{display: "flex"}}>
+                                                    <div style={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        marginTop: 9,
+                                                        marginLeft: 35
+                                                    }}>Заказ: <b>{order.name}</b></div>
+                                                    <div style={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        marginTop: 9,
+                                                        marginLeft: 35
+                                                    }}>Способ доставки: <b>{order.delivery}</b></div>
+                                                </div>
 
-                        return (
-                            <div style={{ display: "flex" }}>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <Button
-                                        color="success"
-                                        disabled={!table.getIsAllRowsSelected()}
-                                        onClick={handleCollectOrder}
-                                        variant="contained"
-                                    >
-                                        СОБРАТЬ/УПАКОВАТЬ
-                                    </Button>
-                                    <Button
-                                        color="error"
-                                        // disabled={!table.getIsSomeRowsSelected()}
-                                        onClick={handleSendToCorrect}
-                                        variant="contained"
-                                    >
-                                        КОРРЕКТИРОВКА
-                                    </Button>
-                                    <Button
-                                        color="error"
-                                        disabled={true}
-                                        onClick={handleContact}
-                                        variant="contained"
-                                    >
-                                        Нет товара?
-                                    </Button>
-                                    <Button
-                                        color="warning"
-                                        // disabled={true}
-                                        // onClick={handleContact}
-                                        variant="contained"
-                                    >
-                                        Мои заказы
-                                    </Button>
-                                    {/* <input type='text' autoFocus></input> */}
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>Текущий заказ: <b>{order.name}</b></div>
-                                <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>Способ доставки: <b>{order.delivery}</b></div>
-                                {/* <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Комментарий: ${order.description}`}</div> */}
-                            </div>
-
-                        );
-                    }}
+                                                {/* <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Комментарий: ${order.description}`}</div> */}
+                                            </div>
+                                        );
+                                    }}
                 />
                 :
                 ""}
-            <Popup open={showPopup} onClose={() => setShowPopup(false) }><h4> Неверный штрихкод! </h4></Popup>
+            <Popup open={showPopup} onClose={() => setShowPopup(false)}><h4> Неверный штрихкод! </h4></Popup>
+            <Popup open={isCorrectButtonClicked} onClose={() => setIsCorrectButtonClicked(false)}>
+                <h2> Укажите причину корректировки </h2>
+                <input
+                    onChange={(e) => {
+                        setOrderCorrectReason(e.target.value)
+                    }}
+                    name={"correct_reason"}
+                    value={orderCorrectReason}
+                    type="text"
+                    placeholder='причина корректировки'
+                />
+                <MyButton onClick={() => handleSendToCorrect()}> Отправить </MyButton>
+            </Popup>
+            <Popup open={isWaitingButtonClicked} onClose={() => setIsWaitingButtonClicked(false)} modal> <OrderList
+                orders={store.ordersInWork} title="Список заказов в ожидании"/> </Popup>
             {/* Loading component */}
         </div>
     )

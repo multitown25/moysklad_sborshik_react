@@ -11,8 +11,6 @@ const AppRouter = () => {
         return <div>Загрузка...</div>
     }
 
-    
-
     return (
             store.user.email === "admin"
                 ?
@@ -37,7 +35,7 @@ const AppRouter = () => {
                         </Route>
                     )}
                     {/* <Route path="/orders" element={<OrderList />}/> */}
-                    <Route path="*" element={<Navigate to='/login' replace />} />
+                    {/*<Route path="*" element={<Navigate to='/login' replace />} />*/}
                     
                 </Routes>
     )

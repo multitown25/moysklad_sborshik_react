@@ -1,39 +1,95 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Context } from '../index';
+import React, {useContext, useEffect, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import {Context} from '../index';
 import OrderService from '../services/OrderService';
 import MyButton from '../UI/MyButton/MyButton';
+import Popup from "reactjs-popup";
+import OrderList from "../components/OrderList";
+import {toJS} from "mobx";
 
 export default function Start() {
-    const { store } = useContext(Context);
+    const {store} = useContext(Context);
     const [orders, setOrders] = useState([]);
-    const [userOrders, setUserOrders] = useState([]);
     const [orderId, setOrderId] = useState('');
+    const [showWaitingList, setShowWaitingList] = useState(false);
     const navigate = useNavigate();
 
 
+    // is it necessary?
+    // useEffect(() => {
+    //     // getAllOrders();
+    // }, []);
+
     useEffect(() => {
-        getAllOrders();
-        // chooseRandomOrderId();
+        // store.checkOrdersInWork();
     }, []);
 
+    // useEffect(() => {
+    //     if (store.user.email === undefined || store.user.email == "undefined") {
+    //         alert('Пожалуйста, авторизуйтесь!');
+    //         navigate('/login');
+    //     }
+    // }, []);
 
-    async function handleNewOrder() {
-        const orderForWork = await chooseRandomOrderId();
-        console.log(orderForWork)
-        console.log('userOrders');
-        console.log(userOrders)
-        // console.log(Object.entries(orderForWork))
-        if (orderForWork == 'undefined' || orderForWork == null) {
+
+    async function temp() {
+        // const newOrder = await OrderService.getNewOrder().then(data => JSON.parse(data.data));
+
+        const ordersInWork = await OrderService.getOrdersInWorkByUser(true).then(data => JSON.parse(data.data));
+        // const currentOrderId = ordersInWork.find(item => item.current === true)?.id;
+        const currentOrderId = ordersInWork.filter(item => item.employee === store.user.email).find(item => item.current === true)?.id;
+        console.log(ordersInWork);
+        if (ordersInWork.length === 0 || !currentOrderId) {
             console.log('handle new order')
             alert('Нет заказов! Обратитесь к главному!')
-            const removeOrderFromWork = await OrderService.removeOrderFromWork("undefined", store.user.email);
-            console.log(removeOrderFromWork);
             return;
         }
-        const url = `/orders/${orderForWork}`
+
+        setOrderId(currentOrderId);
+        store.setOrdersInWork(ordersInWork);
+        const url = `/orders/${currentOrderId}`
         console.log(url)
         navigate(url)
+    }
+
+    // (NEW) start to collect
+    async function startToCollect() {
+        console.log('NEW FUNC')
+        // before check current orders
+        await store.checkOrdersInWork();
+
+        // if user has current order (to collect) navigate him to it
+        const userOrdersInWork = toJS(store.ordersInWork);
+        console.log('start to collect, toJS(store.orderInWork)', userOrdersInWork);
+        const hasCurrent = userOrdersInWork.find(item => item.current === true);
+        if (hasCurrent) {
+            const url = `/orders/${hasCurrent.id}`;
+            console.log(url);
+            navigate(url);
+        }
+
+        // else give him new order to collect
+        // if we got order then add this order to orders in work on server side and client side
+        const newOrder = await OrderService.getNewOrder().then(data => {
+            console.log(data);
+            return data.data;
+        });
+        if (!newOrder) {
+            alert('Нет заказов! Обратитесь к главному!')
+            return;
+        }
+
+        userOrdersInWork.push(newOrder);
+        console.log('check client userOrdersInWork before set to store', userOrdersInWork)
+        store.setOrdersInWork(userOrdersInWork);
+        const url = `/orders/${newOrder.id}`;
+        console.log(url);
+        navigate(url);
+    }
+
+    async function handleShowMyOrders() {
+        await store.checkOrdersInWork();
+        setShowWaitingList(true);
     }
 
     function handleLogout() {
@@ -48,18 +104,11 @@ export default function Start() {
         navigate('/ordersinwork')
     }
 
+
     async function getAllOrders() {
         try {
-            // let neededStatus;
-            // console.log(store.isSborshik);
-            // if (store.isSborshik) {
-            //     neededStatus = 'НА СБОРКЕ';
-            // } else {
-            //     neededStatus = 'НА УПАКОВКЕ'
-            // }
-            // console.log(neededStatus);
             const response = await OrderService.getAllOrders();
-            // console.log(response);
+            console.log('ALL ORDERS BY USER TYPE\n', response.data);
             setOrders(response.data);
         } catch (e) {
             console.log(e);
@@ -70,75 +119,29 @@ export default function Start() {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function chooseRandomOrderId() {
-        console.log(store.user.email)
-
-        // get current user order from redis cache
-        // await OrderService.getCurrentOrder(store.user.email);
-        // await OrderService.getAllOrderInWork()
-        const orderId = await OrderService.getOrderInWorkByUser(store.user.email).then(data => data.data);
-        console.log(orderId)
-        console.log(orders?.positions)
-
-
-        try {
-            if (orderId === undefined || orderId === null || orderId === "undefined" || orderId === "") {
-                let orderIsSelect = false;
-                let counter = 0;
-                const ordersInWork = await OrderService.getAllOrdersInWork().then(data => data.data);
-                console.log(ordersInWork);
-
-                while (!orderIsSelect && counter !== 3000) {
-                    // await sleep(2000);
-                    const randomIndex = Math.floor(Math.random() * (orders.length))
-                    const newOrderId = orders[randomIndex]?.id;
-                    const newOrderName = orders[randomIndex]?.name;
-                    console.log(newOrderId)
-
-
-                    if (!ordersInWork.find(item => item.orderId === newOrderId) && newOrderId != undefined) {
-                        console.log("NEW ORDER ID")
-                        console.log(newOrderId)
-
-                        // await OrderService.setCurrentOrder();
-                        const tryToSetOrderInWork = await OrderService.setOrderInWork(newOrderId, store.user.email, newOrderName);
-                        setUserOrders(userOrders.push({
-                            id: newOrderId,
-                            isCurrent: false // false by default
-                        }));
-
-                        // remove this
-                        setOrderId(newOrderId);
-                        return newOrderId;
-                        orderIsSelect = true; // flag for stop/keep doing while cycle
-                    }
-                    counter++;
-                }
-
-            } else {
-                // return Promise.resolve(orderId);
-                setOrderId(orderId.orderId);
-                return orderId.orderId;
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
     return (
         <div>
             {orders
                 ?
-                <div style={{ display: "grid", width: "200px", gridTemplateColumns: "auto" }}>
+                <div style={{display: "grid", width: "200px", gridTemplateColumns: "auto"}}>
                     <h3>{`Добро пожаловать, ${store.user.email}!`}</h3>
                     {/* <Link to={`/orders/${orderId}`}>Начать собирать</Link> */}
 
                     {store.user.email !== "admin"
                         ?
-                        <MyButton onClick={handleNewOrder}>Начать собирать</MyButton>
+                        <div style={{display: "flex", justifyContent: "center"}}>
+                            <MyButton onClick={startToCollect}>Новый заказ</MyButton>
+                            <MyButton onClick={handleShowMyOrders}>Мои заказы</MyButton>
+                        </div>
                         :
                         ""
+
                     }
+
+                    <Popup open={showWaitingList} onClose={() => setShowWaitingList(false)} modal> <OrderList
+                        orders={store.ordersInWork}
+                        title="Список заказов в ожидании"/> </Popup>
+
 
                     {store.user.email === "admin"
                         ?
@@ -153,14 +156,12 @@ export default function Start() {
                         :
                         ""
                     }
-
                     <MyButton onClick={async () => {
                         await store.logout();
                         handleLogout();
                     }}>
                         Выйти
                     </MyButton>
-
                 </div>
                 :
                 <div></div>

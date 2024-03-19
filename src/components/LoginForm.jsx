@@ -15,7 +15,7 @@ const LoginForm = () => {
                 onChange={e => setEmail(e.target.value)}
                 value={email}
                 type="text"
-                placeholder='Email'
+                placeholder='Логин'
             />
             <input
                 onChange={e => setPassword(e.target.value)}
@@ -24,7 +24,7 @@ const LoginForm = () => {
                 placeholder='Пароль'
             />
             <MyButton onClick={() => store.login(email, password)}>
-                Логин
+                Войти
             </MyButton>
 
         </div>

@@ -1,6 +1,7 @@
 import {makeAutoObservable} from "mobx";
 import AuthService from "../services/AuthService";
 import axios from 'axios';
+import OrderService from "../services/OrderService";
 
 export default class Store {
     // sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"];
@@ -8,6 +9,7 @@ export default class Store {
     isAuth = false;
     isLoading = false;
     orderId = '';
+    ordersInWork = [];
 
     constructor() {
         makeAutoObservable(this);
@@ -15,6 +17,10 @@ export default class Store {
 
     setAuth(bool) {
         this.isAuth = bool;
+    }
+
+    setOrdersInWork(orders) {
+        this.ordersInWork = orders;
     }
 
     setUser(user) {
@@ -72,6 +78,17 @@ export default class Store {
             localStorage.removeItem('token');
             this.setAuth(false);
             this.setUser({});
+        } catch (e) {
+            console.log(e.response?.data?.message);
+        }
+    }
+
+    async checkOrdersInWork() {
+        try {
+            const ordersInWork = await OrderService.getOrdersInWorkByUser(false).then(data => JSON.parse(data.data));
+            // console.log(ordersInWork);
+            this.setOrdersInWork(ordersInWork);
+
         } catch (e) {
             console.log(e.response?.data?.message);
         }

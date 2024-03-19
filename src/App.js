@@ -16,15 +16,29 @@ const App = () => {
     useEffect(() => {
         console.log(process.env.REACT_APP_API_URL)
         if (localStorage.getItem('token')) {
-            store.checkAuth()
+            store.checkAuth();
         }
 
         // getOrders();
-    }, [])
+    }, []);
 
     useEffect(() => {
-        if (!store.isAuth) navigate('/login');
-    }, []) // [store.isAuth]
+        console.log('CHECK USEEFFECT');
+        store.checkOrdersInWork();
+    }, []);
+
+    // useEffect(() => {
+    //     if (!store.isAuth) {
+    //         navigate('/login');
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     if (!store.isAuth) {
+    //         console.log('NAVIGATE TO /login');
+    //         navigate('/login');
+    //     }
+    // }, []) // [store.isAuth]
 
 
     if (store.isLoading) {

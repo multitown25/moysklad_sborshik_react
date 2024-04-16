@@ -4,7 +4,6 @@ import axios from 'axios';
 import OrderService from "../services/OrderService";
 
 export default class Store {
-    // sborshiks = ["Татьяна", "Наталья", "Светлана", "Олег"];
     user = {};
     isAuth = false;
     isLoading = false;

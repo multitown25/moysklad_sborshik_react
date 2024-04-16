@@ -21,6 +21,10 @@ export default function OrderById() {
     const pagination = {
         pageSize: 100
     }
+    const readyButtons = {
+        'Упаковщик': 'УПАКОВАТЬ',
+        'Сборщик': 'СОБРАТЬ'
+    }
     const STATES = new Map([
         ['Сборщик', 'НА УПАКОВКЕ'],
         ['Упаковщик', 'Собрано'],
@@ -277,7 +281,7 @@ export default function OrderById() {
                                                         onClick={handleCollectOrder}
                                                         variant="contained"
                                                     >
-                                                        СОБРАТЬ
+                                                        {readyButtons[store.user.position]}
                                                     </Button>
                                                     <Button
                                                         color="error"

@@ -18,7 +18,9 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        store.checkOrdersInWork();
+        if (store.isAuth) {
+            store.checkOrdersInWork();
+        }
     }, []);
 
 

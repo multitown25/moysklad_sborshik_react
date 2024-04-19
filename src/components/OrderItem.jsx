@@ -29,7 +29,7 @@ export default function OrderItem(props) {
         <div>
             <div>
                 {/*<Link to={`/orders/${props.order.id}`} >{props.order.name}</Link>*/}
-                <MyButton onClick={handleSetOrderInWork}> {props.order.name} </MyButton>
+                <MyButton onClick={handleSetOrderInWork}> {props.order.name} </MyButton> {props.order.waitingReason}
                 {/*<MyButton onClick={() => navigate('/start')}>MAIN</MyButton>*/}
             </div>
             <div>

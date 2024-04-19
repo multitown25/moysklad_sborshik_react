@@ -17,8 +17,8 @@ export default class OrderService {
         return $api.get(`/users`);
     }
 
-    static async moveOrderToWaitingList(orderId) {
-        return $api.post('/orders/waitinglist', {orderId})
+    static async moveOrderToWaitingList(orderId, reason) {
+        return $api.post('/orders/waitinglist', {orderId, reason})
     }
 
     static async changeOrderResponsibleEmployee(ordersId) {
@@ -37,9 +37,9 @@ export default class OrderService {
         return $api.post(`/ordersinwork`, {flag: flagNeedNewOrder});
     }
 
-    static async setOrderInWork(id) {
-        return $api.post(`/orderinwork/${id}`);
-    }
+    // static async setOrderInWork(id) {
+    //     return $api.post(`/orderinwork/${id}`);
+    // }
 
     static async updateSelectedPositions(id, data) {
         return $api.patch(`/ordersinwork/${id}/update_selected_rows`, data)

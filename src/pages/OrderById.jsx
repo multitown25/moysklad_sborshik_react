@@ -40,6 +40,7 @@ export default function OrderById() {
     const [isWaitingButtonClicked, setIsWaitingButtonClicked] = useState(false);
     const [isCorrectButtonClicked, setIsCorrectButtonClicked] = useState(false);
     const [orderCorrectReason, setOrderCorrectReason] = useState("");
+    const [orderWaitingReason, setOrderWaitingReason] = useState("");
     const navigate = useNavigate();
     const columns = useMemo(
         () => [
@@ -61,7 +62,12 @@ export default function OrderById() {
             {
                 accessorKey: 'quantity',
                 header: 'Количество',
-                size: 200
+                size: 200,
+                Cell: ({cell}) => (
+                    <span style={{fontSize: '20px'}}>
+                        {cell.getValue()}
+                    </span>
+                )
             }
         ],
         [],
@@ -93,6 +99,7 @@ export default function OrderById() {
 
             const selectedRow = Object.assign(rowSelection, rowsToUpdate);
             setRowSelection((selectedRow) => (selectedRow));
+            // setRowSelection(selectedRow);
 
         } catch (e) {
             console.log(e);
@@ -109,24 +116,30 @@ export default function OrderById() {
     }, [rowSelection])
 
     async function updateSelectedPositions() {
-        const orderInStore = toJS(store.ordersInWork).find(item => item.id === params.id);
-        const updatedIndicesArr = Object.keys(rowSelection).map(item => {
-            const number = parseInt(item);
-            return {
-                [number]: true
-            }
-        });
-        // console.log('orderId', order);
-        const updatedIndices = Object.assign({}, ...updatedIndicesArr);
-        console.log('updated indices', updatedIndices);
+        // // const orderInStore = toJS(store.ordersInWork).find(item => item.id === params.id);
+        // const updatedIndicesArr = Object.keys(rowSelection);
+        // console.log(rowSelection);
+        // // console.log('orderId', order);
+        // const updatedIndices = Object.assign({}, updatedIndicesArr);
+        // console.log('updated indices', updatedIndices);
+        //
+        // let serverResToUpdateSelectedPositions;
+        // if (updatedIndicesArr.length > 0) {
+        //     console.log('update indices length', updatedIndicesArr.length);
+        //     await OrderService.updateSelectedPositions(params.id, {updatedIndices});
+        // }
+        //
+        // return serverResToUpdateSelectedPositions;
 
+        const updateRows = Object.assign({}, rowSelection);
+        console.log('updateRows', updateRows);
         let serverResToUpdateSelectedPositions;
-        if (updatedIndicesArr.length > 0) {
-            console.log('update indices length', updatedIndicesArr.length);
-            await OrderService.updateSelectedPositions(params.id, {updatedIndices});
+        if (Object.keys(updateRows).length > 0) {
+            await OrderService.updateSelectedPositions(params.id, {updateRows});
         }
 
         return serverResToUpdateSelectedPositions;
+
     }
 
     useEffect(() => {
@@ -152,10 +165,11 @@ export default function OrderById() {
 
     useEffect(() => {
         if (order.length !== 0) {
-            const needSelectRowIndex = order.positions.findIndex(position => position.barcode === barcode.value);
+            console.log('order', order);
+            const needSelectRow = order.positions.find(position => position.barcode === barcode.value)?.id;
             console.log(barcode.value)
-            console.log(needSelectRowIndex);
-            if (needSelectRowIndex === -1) {
+            console.log(needSelectRow);
+            if (needSelectRow) {
                 setBarcodeParts('');
                 setShowPopup(!showPopup);
                 // alert("Неверный штрихкод!")
@@ -163,7 +177,7 @@ export default function OrderById() {
                 return;
             }
 
-            const selectedRow = Object.assign(rowSelection, {[needSelectRowIndex]: true})
+            const selectedRow = Object.assign(rowSelection, {[needSelectRow]: true})
             setRowSelection((selectedRow) => (selectedRow));
             console.log('selected row', selectedRow);
             console.log(barcode);
@@ -222,6 +236,19 @@ export default function OrderById() {
 
     };
 
+    const handleToWaitingList = async () => {
+        // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id);
+        // console.log(removeOrderFromWork)
+        // console.log(order)
+        const serverRes = await OrderService.moveOrderToWaitingList(params.id, orderWaitingReason);
+        alert(`Заказ ${order.name} успешно отправлен в лист ожидания!`)
+        navigate('/start');
+        // localStorage.removeItem('orderId');
+        // table.getSelectedRowModel().flatRows.map((row) => {
+        //     alert('contact ' + row.getValue('name'));
+        // });
+    };
+
 
     return (
         <div>
@@ -231,6 +258,7 @@ export default function OrderById() {
                                     enableRowSelection
                                     onRowSelectionChange={setRowSelection}
                                     initialState={{pagination}}
+                                    getRowId={(originalRow)=> originalRow.id}
                                     state={{rowSelection}}
                                     renderTopToolbarCustomActions={({table}) => {
                                         const handleCollectOrder = async () => {
@@ -252,18 +280,22 @@ export default function OrderById() {
 
                                         };
 
-
-                                        const handleToWaitingList = async () => {
-                                            // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id);
-                                            // console.log(removeOrderFromWork)
-                                            // console.log(order)
-                                            const serverRes = await OrderService.moveOrderToWaitingList(params.id);
-                                            alert(`Заказ ${order.name} успешно отправлен в лист ожидания!`)
-                                            navigate('/start');
-                                            // localStorage.removeItem('orderId');
-                                            // table.getSelectedRowModel().flatRows.map((row) => {
-                                            //     alert('contact ' + row.getValue('name'));
-                                            // });
+                                        const handleToSendToRazliv = async () => {
+                                            try {
+                                                const result = await OrderService.changeOrderStatus(params.id, 'РАЗЛИВ МАСЕЛ');
+                                                console.log(result);
+                                                const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.position);
+                                                console.log(removeOrderFromWork)
+                                                // const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
+                                                alert(`Заказ ${order.name} переведен на статус РАЗЛИВ МАСЕЛ!`)
+                                                navigate('/start')
+                                                // перекинуть на другой заказ
+                                                // table.getSelectedRowModel().flatRows.map((row) => {
+                                                //     alert('deactivating ' + row.getValue('name'));
+                                                // });
+                                            } catch (error) {
+                                                alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
+                                            }
                                         };
 
                                         return (
@@ -294,10 +326,18 @@ export default function OrderById() {
                                                     <Button
                                                         color="primary"
                                                         // disabled={true}
-                                                        onClick={handleToWaitingList}
+                                                        onClick={() => setIsWaitingButtonClicked(true)}
                                                         variant="contained"
                                                     >
                                                         В ожидание
+                                                    </Button>
+                                                    <Button
+                                                        color="warning"
+                                                        // disabled={true}
+                                                        onClick={handleToSendToRazliv}
+                                                        variant="contained"
+                                                    >
+                                                        На разлив
                                                     </Button>
                                                     {/*<Button*/}
                                                     {/*    color="warning"*/}
@@ -345,8 +385,19 @@ export default function OrderById() {
                 />
                 <MyButton onClick={() => handleSendToCorrect()}> Отправить </MyButton>
             </Popup>
-            <Popup open={isWaitingButtonClicked} onClose={() => setIsWaitingButtonClicked(false)} modal> <OrderList
-                orders={store.ordersInWork} title="Список заказов в ожидании"/> </Popup>
+            <Popup open={isWaitingButtonClicked} onClose={() => setIsWaitingButtonClicked(false)}>
+                <h2> Укажите причину ожидания </h2>
+                <input
+                    onChange={(e) => {
+                        setOrderWaitingReason(e.target.value)
+                    }}
+                    name={"waiting_reason"}
+                    value={orderWaitingReason}
+                    type="text"
+                    placeholder='причина ожидания'
+                />
+                <MyButton onClick={() => handleToWaitingList()}> Отправить </MyButton>
+            </Popup>
             {/* Loading component */}
         </div>
     )

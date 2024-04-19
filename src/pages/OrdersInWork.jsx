@@ -72,6 +72,7 @@ export default function OrdersInWork() {
                 ?
                 <MaterialReactTable columns={columns} data={ordersInWork}
                                     enableRowSelection
+                                    enableMultiRowSelection={false}
                                     onRowSelectionChange={setRowSelection}
                                     initialState={{pagination}}
                                     state={{rowSelection}}
@@ -80,16 +81,18 @@ export default function OrdersInWork() {
                                             try {
                                                 const selectedOrdersIndices = Object.keys(rowSelection).map(item => parseInt(item));
                                                 const ordersToRemove = [];
-                                                selectedOrdersIndices.forEach(item => {
+                                                selectedOrdersIndices.forEach(item => { // for multi delete feature
                                                     ordersToRemove.push(ordersInWork[item]);
                                                 })
                                                 console.log(ordersToRemove);
 
-                                                await Promise.all(ordersToRemove.map(async (item) => {
-                                                    const removeOrderRes = await OrderService.removeOrderFromWork(item.id, item.status);
-                                                    console.log(removeOrderRes);
-                                                }));
 
+                                                const result = await OrderService.removeOrderFromWork(ordersToRemove.map(item => item.id));
+                                                // await Promise.all(ordersToRemove.map(async (item) => {
+                                                //     const removeOrderRes = await OrderService.removeOrderFromWork(item.id, item.status);
+                                                //     console.log(removeOrderRes);
+                                                // }));
+                                                console.log('result from server', result);
                                                 alert(`Следующие заказы удалены с работы!\n${ordersToRemove.map(item => item.name).join('\n')}`)
                                                 // navigate('/start')
                                                 refreshPage();

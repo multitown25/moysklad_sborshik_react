@@ -7,7 +7,13 @@ import MyButton from '../UI/MyButton/MyButton';
 const LoginForm = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [position, setPosition] = useState('')
     const {store} = useContext(Context);
+
+    const positions = [
+        'Сборщик',
+        'Упаковщик'
+    ]
 
     return (
         <div>
@@ -23,7 +29,23 @@ const LoginForm = () => {
                 type="password"
                 placeholder='Пароль'
             />
-            <MyButton onClick={() => store.login(email, password)}>
+            {/*<input*/}
+            {/*    onChange={e => setPosition(e.target.value)}*/}
+            {/*    value={position}*/}
+            {/*    type="text"*/}
+            {/*    placeholder='Должность'*/}
+            {/*/>*/}
+            <select onChange={(e) => setPosition(e.target.value)}>
+                <option>Выберите должность</option>
+                {positions.map((position, index) => {
+                    return (
+                        <option key={index}>
+                            {position}
+                        </option>
+                    );
+                })}
+            </select>
+            <MyButton onClick={() => store.login(email, password, position)}>
                 Войти
             </MyButton>
 

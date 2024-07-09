@@ -6,9 +6,15 @@ import {MaterialReactTable} from "material-react-table";
 import OrderList from "../components/OrderList";
 import {useParams, useNavigate} from "react-router-dom";
 import {Button} from "@mui/material";
+import Popup from "reactjs-popup";
+import Select from 'react-select';
+import OrderItem from "../components/OrderItem";
 
 export default function OrdersInWork() {
     const [ordersInWork, setOrdersInWork] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
+    const [isNewUserButtonClicked, setIsNewUserButtonClicked] = useState(false);
+    // const [newUser, setNewUser] = useState(null);
     const { store } = useContext(Context);
     const navigate = useNavigate();
     const pagination = {
@@ -64,6 +70,31 @@ export default function OrdersInWork() {
         navigate('/start');
     }
 
+    async function changeEmployeeForOrder(newEmployee) {
+        try {
+            setTimeout(() => setIsNewUserButtonClicked(false), 500);
+
+            const selectedOrdersIndices = Object.keys(rowSelection).map(item => parseInt(item));
+            const orderToChange = ordersInWork[selectedOrdersIndices];
+            // const ordersToChangeEmployee = [];
+            // selectedOrdersIndices.forEach(item => {
+            //     ordersToChangeEmployee.push(ordersInWork[item]);
+            // });
+            // console.log(ordersToChangeEmployee);
+            console.log(orderToChange);
+            console.log(newEmployee);
+            // console.log(`${ordersToChangeEmployee[0]}`)
+
+            const changeEmployeeRes = await OrderService.changeOrderResponsibleEmployee({orderId: orderToChange.id, newEmployee});
+            console.log(changeEmployeeRes);
+            setOrdersInWork(changeEmployeeRes.data);
+            // alert(`Смена ответственного у заказа: ${orderToChange.name} с ${orderToChange.employee} на ${newEmployee.email} -`)
+
+        } catch (error) {
+            alert(`Ошибка! Что-то пошло не так...\n${error.message}`)
+        }
+    }
+
     return (
         <div>
             <MyButton onClick={handleBackButton}>Назад</MyButton>
@@ -106,16 +137,12 @@ export default function OrdersInWork() {
 
                                         const handleToChangeOrdersEmployee= async () => {
                                             try {
-                                                const selectedOrdersIndices = Object.keys(rowSelection).map(item => parseInt(item));
-                                                const ordersToChangeEmployee = [];
-                                                selectedOrdersIndices.forEach(item => {
-                                                    ordersToChangeEmployee.push(ordersInWork[item]);
-                                                });
-
-                                                console.log(ordersToChangeEmployee);
-
+                                                // setNewUser(ordersToChangeEmployee[0].employee);
                                                 const allUsers = await OrderService.getAllUsers();
+                                                setAllUsers(allUsers.data);
                                                 console.log(allUsers);
+                                                setIsNewUserButtonClicked(true);
+
                                                 // const serverRes = await OrderService.changeOrderResponsibleEmployee(ordersToChangeEmployee.map(item => item.id));
                                                 // console.log(serverRes);
                                                 // alert(`Смена ответственного у заказов:\n${ordersToChangeEmployee.map(item => item.name).join('\n')}`)
@@ -155,6 +182,19 @@ export default function OrdersInWork() {
                     <h3>Нет заказов в работе...</h3>
                 </div>
             }
+
+            <Popup open={isNewUserButtonClicked} onClose={() => setIsNewUserButtonClicked(false)}>
+                <h2> Кого назначить ответственным? </h2>
+                <Select
+                    // defaultValue={newUser}
+                    placeholder={'Новый ответственный..'}
+                    onChange={(user) => changeEmployeeForOrder(user)}
+                    options={allUsers}
+                    getOptionLabel={(user) => `${user.email}: ${user.position}`}
+                    getOptionValue={(user) => `${user.email}`}
+                />
+                {/*<MyButton onClick={() => }> Отправить </MyButton>*/}
+            </Popup>
         </div>
     )
 }

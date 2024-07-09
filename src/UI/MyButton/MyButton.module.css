@@ -8,3 +8,50 @@
     cursor: pointer;
     border-radius: 4px;
 }
+
+.myBtnCorrect {
+    padding: 5px 15px;
+    margin: 3px;
+    color: #ff1414;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid #ff1414;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.myBtnWaiting {
+    padding: 5px 15px;
+    margin: 3px;
+    color: #00a4fd;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid #00a4fd;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.myBtnAvailable {
+    padding: 5px 15px;
+    margin: 3px;
+    color: #05ae29;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid #05ae29;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.myBtnNotAvailable {
+    pointer-events: none;
+    padding: 5px 15px;
+    margin: 3px;
+    color: #888787;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid #888787;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+

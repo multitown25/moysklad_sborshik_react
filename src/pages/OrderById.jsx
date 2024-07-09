@@ -26,9 +26,9 @@ export default function OrderById() {
         'Сборщик': 'СОБРАТЬ'
     }
     const STATES = new Map([
-        ['Сборщик', 'НА УПАКОВКЕ'],
-        ['Упаковщик', 'Собрано'],
-        ['Разливщик масел', 'РАЗЛИВ МАСЕЛ']
+        ['Сборщик', 'Собрано'],
+        ['Упаковщик', 'Упаковано'],
+        ['Разливщик масел', 'Готов к сборке']
     ])
     const [order, setOrder] = useState([]);
     const [rowSelection, setRowSelection] = useState({});
@@ -57,6 +57,11 @@ export default function OrderById() {
             {
                 accessorKey: 'article',
                 header: 'Артикул',
+                size: 200
+            },
+            {
+                accessorKey: 'name',
+                header: 'Наименование',
                 size: 200
             },
             {
@@ -219,15 +224,16 @@ export default function OrderById() {
 
     const handleSendToCorrect = async () => {
         try {
-            const addToDescription = `${order.description}\n${orderCorrectReason}`
+            // const addToDescription = `${order.description}\n${orderCorrectReason}`
+            // const result = await OrderService.changeOrderStatus(params.id, 'Корректировка', addToDescription);
 
-            const result = await OrderService.changeOrderStatus(params.id, 'Корректировка', addToDescription);
+            const result = await OrderService.changeOrderStatus(params.id, 'Корректировка', orderCorrectReason);
             console.log(result);
             console.log(store.user.id);
             // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
             // console.log(removeOrderFromWork)
-            const serverRes = await OrderService.moveOrderToWaitingList(params.id);
-            alert(`Заказ ${order.name} успешно отправлен на корректировку!`)
+            const serverRes = await OrderService.moveOrderToWaitingList(params.id, 'correct', orderCorrectReason);
+            alert(`Отгрузка ${order.name} успешно отправлена на корректировку!`)
             navigate('/start')
 
         } catch (error) {
@@ -240,8 +246,8 @@ export default function OrderById() {
         // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id);
         // console.log(removeOrderFromWork)
         // console.log(order)
-        const serverRes = await OrderService.moveOrderToWaitingList(params.id, orderWaitingReason);
-        alert(`Заказ ${order.name} успешно отправлен в лист ожидания!`)
+        const serverRes = await OrderService.moveOrderToWaitingList(params.id, 'waiting', orderWaitingReason);
+        alert(`Отгрузка ${order.name} успешно отправлена в лист ожидания!`)
         navigate('/start');
         // localStorage.removeItem('orderId');
         // table.getSelectedRowModel().flatRows.map((row) => {
@@ -267,8 +273,8 @@ export default function OrderById() {
                                                 console.log(result);
                                                 const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.position);
                                                 console.log(removeOrderFromWork)
-                                                const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
-                                                alert(`Заказ ${order.name} переведен на статус ${STATES.get(store.user.position)}!`)
+                                                // const addSborshikToOrder = await OrderService.addUserInfoToOrder(params.id, store.user.email, store.user.position);
+                                                alert(`Отгрузка ${order.name} переведена на статус ${STATES.get(store.user.position)}!`)
                                                 navigate('/start')
                                                 // перекинуть на другой заказ
                                                 // table.getSelectedRowModel().flatRows.map((row) => {
@@ -282,12 +288,12 @@ export default function OrderById() {
 
                                         const handleToSendToRazliv = async () => {
                                             try {
-                                                const result = await OrderService.changeOrderStatus(params.id, 'РАЗЛИВ МАСЕЛ');
+                                                const result = await OrderService.changeOrderStatus(params.id, 'Розлив');
                                                 console.log(result);
                                                 const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.position);
                                                 console.log(removeOrderFromWork)
                                                 // const addSborshikToOrder = await OrderService.addSborshikToOrder(params.id, store.user.email);
-                                                alert(`Заказ ${order.name} переведен на статус РАЗЛИВ МАСЕЛ!`)
+                                                alert(`Отгрузка ${order.name} переведена на статус РАЗЛИВ МАСЕЛ!`)
                                                 navigate('/start')
                                                 // перекинуть на другой заказ
                                                 // table.getSelectedRowModel().flatRows.map((row) => {
@@ -331,14 +337,14 @@ export default function OrderById() {
                                                     >
                                                         В ожидание
                                                     </Button>
-                                                    <Button
-                                                        color="warning"
-                                                        // disabled={true}
-                                                        onClick={handleToSendToRazliv}
-                                                        variant="contained"
-                                                    >
-                                                        На разлив
-                                                    </Button>
+                                                    {/*<Button*/}
+                                                    {/*    color="warning"*/}
+                                                    {/*    // disabled={true}*/}
+                                                    {/*    onClick={handleToSendToRazliv}*/}
+                                                    {/*    variant="contained"*/}
+                                                    {/*>*/}
+                                                    {/*    На разлив*/}
+                                                    {/*</Button>*/}
                                                     {/*<Button*/}
                                                     {/*    color="warning"*/}
                                                     {/*    // disabled={true}*/}
@@ -355,13 +361,19 @@ export default function OrderById() {
                                                         justifyContent: "center",
                                                         marginTop: 9,
                                                         marginLeft: 35
-                                                    }}>Заказ: <b>{order.name}</b></div>
+                                                    }}>Отгрузка: <b>{order.name}</b></div>
                                                     <div style={{
                                                         display: "flex",
                                                         justifyContent: "center",
                                                         marginTop: 9,
                                                         marginLeft: 35
                                                     }}>Способ доставки: <b>{order.delivery}</b></div>
+                                                    <div style={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        marginTop: 9,
+                                                        marginLeft: 35
+                                                    }}>Заказ: <b>{order.orderName}</b></div>
                                                 </div>
 
                                                 {/* <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Комментарий: ${order.description}`}</div> */}

@@ -6,7 +6,7 @@ import {Box, Button, ListItemIcon, MenuItem, Typography} from '@mui/material';
 import {Context} from '../index';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
-import OrderList from "../components/OrderList";
+import EntityList from "../components/EntityList";
 import {toJS} from "mobx";
 import MyButton from "../UI/MyButton/MyButton";
 
@@ -88,10 +88,10 @@ export default function OrderById() {
         // let isUploaded = false;
 
         try {
-            const response = await store.checkOrdersInWork();
+            const response = await store.checkEntitiesInWork();
             // isUploaded = true;
 
-            const orderInStore = toJS(store.ordersInWork);
+            const orderInStore = toJS(store.entitiesInWork);
             const rowsToUpdate = orderInStore.find(item => item.id === params.id).selectedPositions;
 
             // for (let i = 0; i < order.positions.length; i++) {
@@ -233,7 +233,7 @@ export default function OrderById() {
             // const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.email);
             // console.log(removeOrderFromWork)
             const serverRes = await OrderService.moveOrderToWaitingList(params.id, 'correct', orderCorrectReason);
-            alert(`Отгрузка ${order.name} успешно отправлена на корректировку!`)
+            alert(`Заказ покупателя ${order.name} успешно отправлен на корректировку!`)
             navigate('/start')
 
         } catch (error) {
@@ -247,7 +247,7 @@ export default function OrderById() {
         // console.log(removeOrderFromWork)
         // console.log(order)
         const serverRes = await OrderService.moveOrderToWaitingList(params.id, 'waiting', orderWaitingReason);
-        alert(`Отгрузка ${order.name} успешно отправлена в лист ожидания!`)
+        alert(`Заказ покупателя ${order.name} успешно отправлен в лист ожидания!`)
         navigate('/start');
         // localStorage.removeItem('orderId');
         // table.getSelectedRowModel().flatRows.map((row) => {
@@ -274,7 +274,7 @@ export default function OrderById() {
                                                 const removeOrderFromWork = await OrderService.removeOrderFromWork(params.id, store.user.position);
                                                 console.log(removeOrderFromWork)
                                                 // const addSborshikToOrder = await OrderService.addUserInfoToOrder(params.id, store.user.email, store.user.position);
-                                                alert(`Отгрузка ${order.name} переведена на статус ${STATES.get(store.user.position)}!`)
+                                                alert(`Заказ покупателя ${order.name} переведен на статус ${STATES.get(store.user.position)}!`)
                                                 navigate('/start')
                                                 // перекинуть на другой заказ
                                                 // table.getSelectedRowModel().flatRows.map((row) => {
@@ -361,19 +361,13 @@ export default function OrderById() {
                                                         justifyContent: "center",
                                                         marginTop: 9,
                                                         marginLeft: 35
-                                                    }}>Отгрузка: <b>{order.name}</b></div>
+                                                    }}>Заказ: <b>{order.name}</b></div>
                                                     <div style={{
                                                         display: "flex",
                                                         justifyContent: "center",
                                                         marginTop: 9,
                                                         marginLeft: 35
                                                     }}>Способ доставки: <b>{order.delivery}</b></div>
-                                                    <div style={{
-                                                        display: "flex",
-                                                        justifyContent: "center",
-                                                        marginTop: 9,
-                                                        marginLeft: 35
-                                                    }}>Заказ: <b>{order.orderName}</b></div>
                                                 </div>
 
                                                 {/* <div style={{ display: "flex", justifyContent: "center", marginTop: 9, marginLeft: 35 }}>{`Комментарий: ${order.description}`}</div> */}

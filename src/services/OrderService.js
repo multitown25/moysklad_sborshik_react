@@ -13,7 +13,7 @@ export default class OrderService {
         return $api.get(`/orders/${id}`)
     }
 
-    static async getDemandsByOrderNumber(orderNumber) {
+    static async getOrderByOrderNumber(orderNumber) {
         return $api.get(`/demands/${orderNumber}`);
     }
 
@@ -41,9 +41,6 @@ export default class OrderService {
         return $api.post(`/ordersinwork`, {flag: flagNeedNewOrder});
     }
 
-    // static async setOrderInWork(id) {
-    //     return $api.post(`/orderinwork/${id}`);
-    // }
 
     static async updateSelectedPositions(id, data) {
         return $api.patch(`/ordersinwork/${id}/update_selected_rows`, data)

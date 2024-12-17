@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext, useMemo} from 'react'
-import OrderList from '../components/OrderList';
+import EntityList from '../components/EntityList';
 import OrderService from '../services/OrderService';
 import MyButton from '../UI/MyButton/MyButton';
 import {useNavigate, useParams} from 'react-router-dom';

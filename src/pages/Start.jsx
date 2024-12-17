@@ -4,20 +4,21 @@ import {Context} from '../index';
 import OrderService from '../services/OrderService';
 import MyButton from '../UI/MyButton/MyButton';
 import Popup from "reactjs-popup";
-import OrderList from "../components/OrderList";
+import EntityList from "../components/EntityList";
 import {toJS} from "mobx";
 import {MaterialReactTable} from "material-react-table";
+import DemandService from "../services/DemandService";
 
 export default function Start() {
     const {store} = useContext(Context);
-    const [orders, setOrders] = useState([]);
-    const [demands, setDemands] = useState([]);
+    const [entities, setEntities] = useState([]);
+    const [order, setOrder] = useState([]);
     const [orderId, setOrderId] = useState('');
     const [showWaitingList, setShowWaitingList] = useState(false);
     const [showScanPopup, setShowScanPopup] = useState(false);
     const showScanPopupRef = useRef();
     showScanPopupRef.current = showScanPopup;
-    const [showDemandsList, setShowDemandsList] = useState(false);
+    const [showOrderList, setShowOrderList] = useState(false);
     let [barcodeParts, setBarcodeParts] = useState('');
     const [barcode, setBarcode] = useState({});
     const [, forceUpdate] = useReducer(x => x + 1, 0);
@@ -27,7 +28,7 @@ export default function Start() {
     const pagination = {
         pageSize: 100
     }
-    const columns = useMemo(
+    const columnsWithDemand = useMemo(
         () => [
             {
                 accessorKey: 'name',
@@ -60,13 +61,41 @@ export default function Start() {
         [],
     );
 
+    const columns = useMemo(
+        () => [
+            {
+                accessorKey: 'name',
+                header: 'Заказ покупателя',
+                size: 200
+            },
+            {
+                accessorFn: (row) => {
+                    const RED_ZONE_ORDERS_DATE = new Date();
+                    // RED_ZONE_ORDERS_DATE.setDate(RED_ZONE_ORDERS_DATE.getDate() - 1);
+
+                    const orderDate = new Date(row.created);
+                    // console.log('RED ZONE DATE', RED_ZONE_ORDERS_DATE);
+                    // console.log('order date', orderDate)
+
+                    const diffInMs = RED_ZONE_ORDERS_DATE - orderDate;
+                    const diffInHours = diffInMs / (1000 * 60 * 60);
+                    return diffInHours.toFixed(2);
+                },
+                id: 'created',
+                header: 'Часов в работе',
+                size: 200
+            }
+        ],
+        [],
+    );
+
     // is it necessary?
     // useEffect(() => {
     //     // getAllOrders();
     // }, []);
 
     useEffect(() => {
-        getAllOrders();
+        getAllEntities();
     }, [])
 
     useEffect(() => {
@@ -95,7 +124,7 @@ export default function Start() {
                 if (newBarcode?.startsWith('o')) {
                     console.log("SCANNED BARCODE2: ", newBarcode);
                     // update user orders in work?
-                    chooseDemand(newBarcode);
+                    chooseOrder(newBarcode);
                 }
                 return;
             }
@@ -131,11 +160,11 @@ export default function Start() {
     //     }
     // }, []);
 
-    async function chooseDemand(orderNumber) {
-        const demands = await OrderService.getDemandsByOrderNumber(orderNumber);
-        console.log(demands.data);
-        setDemands(demands.data);
-        setShowDemandsList(true);
+    async function chooseOrder(orderNumber) {
+        const order = await OrderService.getOrderByOrderNumber(orderNumber);
+        console.log(order.data);
+        setOrder(order.data);
+        setShowOrderList(true);
     }
 
     function parseScannedInput(input) {
@@ -165,63 +194,43 @@ export default function Start() {
 
     }
 
-    async function temp() {
-        // const newOrder = await OrderService.getNewOrder().then(data => JSON.parse(data.data));
-
-        const ordersInWork = await OrderService.getOrdersInWorkByUser(true).then(data => JSON.parse(data.data));
-        // const currentOrderId = ordersInWork.find(item => item.current === true)?.id;
-        const currentOrderId = ordersInWork.filter(item => item.employee === store.user.email).find(item => item.current === true)?.id;
-        console.log(ordersInWork);
-        if (ordersInWork.length === 0 || !currentOrderId) {
-            console.log('handle new order')
-            alert('Нет заказов! Обратитесь к главному!')
-            return;
-        }
-
-        setOrderId(currentOrderId);
-        store.setOrdersInWork(ordersInWork);
-        const url = `/orders/${currentOrderId}`
-        console.log(url)
-        navigate(url)
-    }
-
     // (NEW) start to collect
     async function startToCollect() {
         // console.log('NEW FUNC')
         // before check current orders
-        await store.checkOrdersInWork();
+        await store.checkEntitiesInWork();
 
         // if user has current order (to collect) navigate him to it
-        const userOrdersInWork = toJS(store.ordersInWork);
+        const userDemandsInWork = toJS(store.entitiesInWork);
         // console.log('start to collect, toJS(store.orderInWork)', userOrdersInWork);
-        const hasCurrent = userOrdersInWork.find(item => item.current === true);
+        const hasCurrent = userDemandsInWork.find(item => item.current === true);
         if (hasCurrent) {
-            const url = `/orders/${hasCurrent.id}`;
+            const url = `/demand/${hasCurrent.id}`;
             // console.log(url);
             navigate(url);
         }
 
         // else give him new order to collect
         // if we got order then add this order to orders in work on server side and client side
-        const newOrder = await OrderService.getNewOrder().then(data => {
+        const newDemand = await DemandService.getNewDemand().then(data => {
             console.log(data);
             return data.data;
         });
-        if (!newOrder) {
-            alert('Нет заказов! Обратитесь к главному!')
+        if (!newDemand) {
+            alert('Нет отгрузок! Обратитесь к главному!')
             return;
         }
 
-        userOrdersInWork.push(newOrder);
+        userDemandsInWork.push(newDemand);
         // console.log('check client userOrdersInWork before set to store', userOrdersInWork)
-        store.setOrdersInWork(userOrdersInWork);
-        const url = `/orders/${newOrder.id}`;
+        store.setEntitiesInWork(userDemandsInWork);
+        const url = `/demand/${newDemand.id}`;
         console.log(url);
         navigate(url);
     }
 
     async function handleShowMyOrders() {
-        await store.checkOrdersInWork();
+        await store.checkEntitiesInWork();
         setShowWaitingList(true);
     }
 
@@ -238,11 +247,18 @@ export default function Start() {
     }
 
 
-    async function getAllOrders() {
+    async function getAllEntities() {
         try {
-            const response = await OrderService.getAllOrders();
+            let response;
+            if (store.user.position === 'Сборщик') {
+                response = await OrderService.getAllOrders();
+            } else if (store.user.position === 'Упаковщик') {
+                response = await DemandService.getAllDemands();
+            } else {
+                response = await OrderService.getAllOrders();
+            }
             // console.log('ALL ORDERS BY USER TYPE\n', response.data);
-            setOrders(response.data);
+            setEntities(response.data);
         } catch (e) {
             console.log(e);
         }
@@ -254,7 +270,7 @@ export default function Start() {
 
     return (
         <div>
-            {orders
+            {entities
                 ?
                 <div style={{display: "grid", width: "200px", gridTemplateColumns: "auto"}}>
                     <h3 id={'welcomeLabel'} ref={labelRef}>{`Добро пожаловать, ${store.user.email}!`}</h3>
@@ -276,9 +292,9 @@ export default function Start() {
                             <div>
                                 {/*<MyButton onClick={handleBackButton}>Назад</MyButton>*/}
                                 <h3>Список текущих заказов</h3>
-                                {orders
+                                {entities
                                     ?
-                                    <MaterialReactTable columns={columns} data={orders}
+                                    <MaterialReactTable columns={store.user.position === 'Упаковщик' ? columnsWithDemand : columns} data={entities}
                                         //enableRowSelection
                                         //onRowSelectionChange={setRowSelection}
                                                         initialState={{pagination}}
@@ -322,17 +338,17 @@ export default function Start() {
                         ""
 
                     }
-                    <Popup open={showWaitingList} onClose={() => setShowWaitingList(false)} modal> <OrderList
-                        orders={store.ordersInWork}
+                    <Popup open={showWaitingList} onClose={() => setShowWaitingList(false)} modal> <EntityList
+                        entities={store.entitiesInWork}
                         title="Список заказов в ожидании"/> </Popup>
 
                     <Popup open={showScanPopup} onClose={() => setShowScanPopup(false)} modal>
                         <h3>Отсканируйте штрихкод</h3>
                     </Popup>
 
-                    <Popup open={showDemandsList} onClose={() => setShowDemandsList(false)} modal> <OrderList
-                        orders={demands}
-                        title="Выберите отгрузку"/> </Popup>
+                    <Popup open={showOrderList} onClose={() => setShowOrderList(false)} modal> <EntityList
+                        entities={order}
+                        title="Выберите заказ"/> </Popup>
 
                     {store.user.email === "admin"
                         ?

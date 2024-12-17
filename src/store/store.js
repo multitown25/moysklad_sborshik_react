@@ -2,13 +2,14 @@ import {makeAutoObservable} from "mobx";
 import AuthService from "../services/AuthService";
 import axios from 'axios';
 import OrderService from "../services/OrderService";
+import DemandService from "../services/DemandService";
 
 export default class Store {
     user = {};
     isAuth = false;
     isLoading = false;
-    orderId = '';
-    ordersInWork = [];
+    entityId = '';
+    entitiesInWork = [];
 
     constructor() {
         makeAutoObservable(this);
@@ -18,8 +19,8 @@ export default class Store {
         this.isAuth = bool;
     }
 
-    setOrdersInWork(orders) {
-        this.ordersInWork = orders;
+    setEntitiesInWork(entities) {
+        this.entitiesInWork = entities;
     }
 
     setUser(user) {
@@ -34,8 +35,8 @@ export default class Store {
         this.isLoading = bool;
     }
 
-    setOrderId(orderId) {
-        this.orderId = orderId;
+    setEntityId(entityId) {
+        this.entityId = entityId;
     }
 
     async login(email, password, position) {
@@ -82,11 +83,16 @@ export default class Store {
         }
     }
 
-    async checkOrdersInWork() {
+    async checkEntitiesInWork() {
         try {
-            const ordersInWork = await OrderService.getOrdersInWorkByUser(false).then(data => JSON.parse(data.data));
+            let entitiesInWork;
+            if (this.user.position === 'Сборщик') {
+                entitiesInWork = await OrderService.getOrdersInWorkByUser(false).then(data => JSON.parse(data.data));
+            } else if (this.user.position === 'Упаковщик') {
+                entitiesInWork = await DemandService.getDemandsInWorkByUser(false).then(data => JSON.parse(data.data));
+            }
             // console.log(ordersInWork);
-            this.setOrdersInWork(ordersInWork);
+            this.setEntitiesInWork(entitiesInWork);
 
         } catch (e) {
             console.log(e.response?.data?.message);

@@ -3,12 +3,12 @@ import OrderService from '../services/OrderService'
 import { Context } from '../index'
 import MyButton from '../UI/MyButton/MyButton';
 import {MaterialReactTable} from "material-react-table";
-import OrderList from "../components/OrderList";
+import EntityList from "../components/EntityList";
 import {useParams, useNavigate} from "react-router-dom";
 import {Button} from "@mui/material";
 import Popup from "reactjs-popup";
 import Select from 'react-select';
-import OrderItem from "../components/OrderItem";
+import EntityItem from "../components/EntityItem";
 
 export default function OrdersInWork() {
     const [ordersInWork, setOrdersInWork] = useState([]);

@@ -34,7 +34,7 @@ const AppRouter = () => {
                             element={<route.element/>}>    
                         </Route>
                     )}
-                    {/* <Route path="/orders" element={<OrderList />}/> */}
+                    {/* <Route path="/orders" element={<EntityList />}/> */}
                     {/*<Route path="*" element={<Navigate to='/login' replace />} />*/}
                     
                 </Routes>
